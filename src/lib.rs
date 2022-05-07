@@ -1,4 +1,4 @@
-//! This is a wrapper for the "quaternion" library.
+//! This is a wrapper for the `quaternion-core` crate.
 
 #![no_std]
 #[cfg(feature = "std")]
@@ -6,7 +6,7 @@ extern crate std;
 
 use core::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign};
 use num_traits::{Float, FloatConst};
-use quaternion as quat;
+use quaternion_core as quat;
 use quat::FloatSimd;
 
 pub use quat::{Vector3, Quaternion, DCM};
@@ -15,10 +15,14 @@ pub use quat::{Vector3, Quaternion, DCM};
 pub struct QuaternionWrapper<T>(pub Quaternion<T>);
 
 /// Treated as Pure Quaternion.
+/// 
+/// `QuaternionWrapper = ScalarWrapper + Vector3Wrapper`
 #[derive(Debug, Clone, Copy)]
 pub struct Vector3Wrapper<T>(pub Vector3<T>);
 
 /// Treated as Real Quaternion.
+/// 
+/// `QuaternionWrapper = ScalarWrapper + Vector3Wrapper`
 #[derive(Debug, Clone, Copy)]
 pub struct ScalarWrapper<T>(pub T);
 
@@ -146,6 +150,7 @@ impl<T: Float + FloatConst + FloatSimd<T>> QuaternionWrapper<T> {
     /// 
     /// If it is guaranteed to be a versor, it is less computationally 
     /// expensive than the `.ln()` method. 
+    /// 
     /// Only the vector part is returned since the real part is always zero.
     #[inline]
     pub fn ln_versor(self) -> Vector3Wrapper<T> {
@@ -161,7 +166,7 @@ impl<T: Float + FloatConst + FloatSimd<T>> QuaternionWrapper<T> {
     /// Power function of versor.
     /// 
     /// If it is guaranteed to be a versor, it is less computationally 
-    /// expensive than the `.ln()` method. 
+    /// expensive than the `.pow()` method. 
     #[inline]
     pub fn pow_versor(self, t: T) -> Self {
         Self( quat::pow_versor(self.0, t) )
@@ -527,30 +532,6 @@ impl<T: Float> Mul for ScalarWrapper<T> {
 impl<T: Float> MulAssign for ScalarWrapper<T> {
     fn mul_assign(&mut self, other: ScalarWrapper<T>) {
         *self = Self(self.0 * other.0)
-    }
-}
-
-// R + R(Float)
-impl<T: Float> Add<T> for ScalarWrapper<T> {
-    type Output = Self;
-    fn add(self, other: T) -> Self {
-        Self(self.0 + other)
-    }
-}
-
-// R - R(Float)
-impl<T: Float> Sub<T> for ScalarWrapper<T> {
-    type Output = Self;
-    fn sub(self, other: T) -> Self {
-        Self(self.0 - other)
-    }
-}
-
-// R * R(Float)
-impl<T: Float> Mul<T> for ScalarWrapper<T> {
-    type Output = Self;
-    fn mul(self, other: T) -> Self {
-        Self(self.0 * other)
     }
 }
 

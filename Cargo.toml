@@ -5,19 +5,22 @@ authors = ["HamaguRe <hamagure@space-denpa.jp>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/HamaguRe/quaternion-wrapper.git"
+homepage = "https://github.com/HamaguRe/quaternion-wrapper.git"
+documentation = "https://docs.rs/quaternion-wrapper"
+description = "This is a wrapper for the `quaternion-core` crate"
+keywords = ["mathematics", "science"]
 readme = "README.md"
 build = "build.rs"
 
 [features]
 default = ["std"]
-std = ["quaternion/std", "num-traits/std"]
-fma = ["quaternion/fma"]
-simd = ["quaternion/simd"]
-libm = ["quaternion/libm", "num-traits/libm"]
+std = ["quaternion-core/std", "num-traits/std"]
+fma = ["quaternion-core/fma"]
+simd = ["quaternion-core/simd"]
+libm = ["quaternion-core/libm", "num-traits/libm"]
 
-[dependencies.quaternion]
-git = "https://github.com/HamaguRe/quaternion.git"
-rev = "d11a34a47771358268b002e66f5293bec4f0fe91"
+[dependencies.quaternion-core]
+version = "0.1.0"
 default-features = false
 
 [dependencies.num-traits]

@@ -1,6 +1,6 @@
 # quaternion-wrapper
 
-This is a wrapper for the [quaternion](https://github.com/HamaguRe/quaternion) library.
+This is a wrapper for the [quaternion-core](https://crates.io/crates/quaternion-core) crate.
 
 Provides various operations on quaternion.
 
@@ -15,7 +15,7 @@ quaternion-wrapper = "0.1"
 
 ## Features
 
-See the [quaternion](https://github.com/HamaguRe/quaternion) library documentation for details on each feature.
+See the [quaternion-core](https://crates.io/crates/quaternion-core) crate documentation for details on each feature.
 
 ```toml
 [dependencies.quaternion-wrapper]
@@ -48,7 +48,7 @@ fn main() {
 
     // Check if the calculation is correct.
     let true_val = Vector3Wrapper([0.0, 2.0, -2.0]);
-    let diff: [f64; 3] = (result - true_val).unwrap();
+    let diff: [f64; 3] = (true_val - result).unwrap();
     for val in diff.iter() {
         assert!(val.abs() < EPSILON);
     }
