@@ -1,10 +1,18 @@
 //! This is a wrapper for the `quaternion-core` crate.
+//! 
+//! Provides various operations on quaternion.
+//! 
+//! | ↓Left / Right→      | QuaternionWrapper               | Vector3Wrapper            | ScalarWrapper      |
+//! |:---------------------:|:--------------------------------|:--------------------------|:-------------------|
+//! | __QuaternionWrapper__ | `+`, `-`, `*`, `+=`, `-=`, `*=` | `+`, `-`, `*`             | `+`, `-`, `*`, `/` |
+//! | __Vector3Wrapper__    | `+`, `-`, `*`                   | `+`, `-`, `*`, `+=`, `-=` | `+`, `-`, `*`, `/` |
+//! | __ScalarWrapper__     | `+`, `-`, `*`                   | `+`, `-`, `*`             | `+`, `-`, `*`, `/`, `+=`, `-=`, `*=`, `/=` |
 
 #![no_std]
 #[cfg(feature = "std")]
 extern crate std;
 
-use core::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign};
+use core::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Div, DivAssign};
 use num_traits::{Float, FloatConst};
 use quaternion_core as quat;
 use quat::FloatSimd;
@@ -70,18 +78,22 @@ impl<T: Float + FloatConst + FloatSimd<T>> QuaternionWrapper<T> {
     }
 
     /// Convert Euler angles to quaternion.
-    /// 
-    /// Angle/Axis sequences is `[yaw, pitch, roll] / [z, y, x]`.
     #[inline]
-    pub fn from_euler_angles(ypr: Vector3<T>) -> Self {
-        Self( quat::from_euler_angles(ypr) )
+    pub fn from_euler_angles(angles: Vector3<T>) -> Self {
+        Self( quat::from_euler_angles(angles) )
     }
 
     /// Compute the rotation `axis` (unit vector) and the rotation `angle`\[rad\] 
     /// around the axis from the versor.
+    /// 
+    /// If identity quaternion is entered, `angle` returns zero and 
+    /// the `axis` returns a zero vector.
+    /// 
+    /// Range of `angle`: `(-PI, PI]`
     #[inline]
-    pub fn to_axis_angle(self) -> (Vector3<T>, T) {
-        quat::to_axis_angle(self.0)
+    pub fn to_axis_angle(self) -> (Vector3Wrapper<T>, ScalarWrapper<T>) {
+        let f = quat::to_axis_angle(self.0);
+        ( Vector3Wrapper(f.0), ScalarWrapper(f.1) )
     }
 
     /// Convert from quaternions to direction cosines matrix.
@@ -91,17 +103,51 @@ impl<T: Float + FloatConst + FloatSimd<T>> QuaternionWrapper<T> {
     }
 
     /// Convert from quaternions to euler angles.
-    /// 
-    /// Angle/Axis sequences is `[yaw, pitch, roll] / [z, y, x]`.
     #[inline]
-    pub fn to_euler_angles(self) -> Vector3<T> {
-        quat::to_euler_angles(self.0)
+    pub fn to_euler_angles(self) -> Vector3Wrapper<T> {
+        Vector3Wrapper( quat::to_euler_angles(self.0) )
+    }
+
+    /// Calculate a versor to rotate from vector `a` to `b`.
+    /// 
+    /// If you enter a zero vector, it returns an identity quaternion.
+    #[inline]
+    pub fn rotate_a_to_b(a: Vector3Wrapper<T>, b: Vector3Wrapper<T>) -> Self {
+        Self( quat::rotate_a_to_b(a.0, b.0) )
     }
 
     /// Sum of each element of the quaternion.
     #[inline]
     pub fn sum(self) -> ScalarWrapper<T> {
         ScalarWrapper( quat::sum(self.0) )
+    }
+
+    /// Calculate `s*self + b`
+    /// 
+    /// If the `fma` feature is enabled, the FMA calculation is performed using the `mul_add` method. 
+    /// If not enabled, it's computed by unfused multiply-add (s*a + b).
+    #[inline]
+    pub fn scale_add(self, s: ScalarWrapper<T>, b: QuaternionWrapper<T>) -> Self {
+        Self( quat::scale_add(s.0, self.0, b.0) )
+    }
+
+    /// Hadamard product of Quaternion.
+    /// 
+    /// Calculate `self ∘ other`
+    #[inline]
+    pub fn hadamard(self, other: QuaternionWrapper<T>) -> Self {
+        Self( quat::hadamard(self.0, other.0) )
+    }
+
+    /// Hadamard product and Addiction of Quaternion.
+    /// 
+    /// Calculate `a ∘ b + c`
+    /// 
+    /// If the `fma` feature is enabled, the FMA calculation is performed using the `mul_add` method. 
+    /// If not enabled, it's computed by unfused multiply-add (s*a + b).
+    #[inline]
+    pub fn hadamard_add(self, b: QuaternionWrapper<T>, c: QuaternionWrapper<T>) -> Self {
+        Self( quat::hadamard_add(self.0, b.0, c.0) )
     }
 
     /// Dot product of the quaternion.
@@ -310,10 +356,18 @@ impl<T: Float + FloatSimd<T>> Mul<Vector3Wrapper<T>> for QuaternionWrapper<T> {
 }
 
 // H * R
-impl<T: FloatSimd<T>> Mul<T> for QuaternionWrapper<T> {
+impl<T: FloatSimd<T>> Mul<ScalarWrapper<T>> for QuaternionWrapper<T> {
     type Output = Self;
-    fn mul(self, coef: T) -> Self {
-        Self( quat::scale(coef, self.0) )
+    fn mul(self, other: ScalarWrapper<T>) -> Self {
+        Self( quat::scale(other.0, self.0) )
+    }
+}
+
+// H / R
+impl<T: Float> Div<ScalarWrapper<T>> for QuaternionWrapper<T> {
+    type Output = Self;
+    fn div(self, other: ScalarWrapper<T>) -> Self {
+        Self( quat::scale(other.0.recip(), self.0) )
     }
 }
 
@@ -335,6 +389,34 @@ impl<T: Float> Vector3Wrapper<T> {
     #[inline]
     pub fn sum(self) -> ScalarWrapper<T> {
         ScalarWrapper( quat::sum_vec(self.0) )
+    }
+
+    /// Calculate `s*self + b`
+    /// 
+    /// If the `fma` feature is enabled, the FMA calculation is performed using the `mul_add` method. 
+    /// If not enabled, it's computed by unfused multiply-add (s*a + b).
+    #[inline]
+    pub fn scale_add(self, s: ScalarWrapper<T>, b: Vector3Wrapper<T>) -> Self {
+        Self( quat::scale_add_vec(s.0, self.0, b.0) )
+    }
+
+    /// Hadamard product of vector.
+    /// 
+    /// Calculate `a ∘ b`
+    #[inline]
+    pub fn hadamard(self, other: Vector3Wrapper<T>) -> Self {
+        Self( quat::hadamard_vec(self.0, other.0) )
+    }
+
+    /// Hadamard product and Addiction of Vector.
+    /// 
+    /// Calculate `a ∘ b + c`
+    /// 
+    /// If the `fma` feature is enabled, the FMA calculation is performed using the `mul_add` method. 
+    /// If not enabled, it's computed by unfused multiply-add (s*a + b).
+    #[inline]
+    pub fn hadamard_add(self, b: Vector3Wrapper<T>, c: Vector3Wrapper<T>) -> Self {
+        Self( quat::hadamard_add_vec(self.0, b.0, c.0) )
     }
 
     /// Dot product of the vector.
@@ -467,6 +549,14 @@ impl<T: Float> Mul<ScalarWrapper<T>> for Vector3Wrapper<T> {
     }
 }
 
+// R^3 / R
+impl<T: Float> Div<ScalarWrapper<T>> for Vector3Wrapper<T> {
+    type Output = Self;
+    fn div(self, other: ScalarWrapper<T>) -> Self {
+        Self( quat::scale_vec(other.0.recip(), self.0) )
+    }
+}
+
 // --------------------- Scalar -------------------- //
 impl<T: Float> ScalarWrapper<T> {
     /// Create a new ScalarWrapper
@@ -532,6 +622,21 @@ impl<T: Float> Mul for ScalarWrapper<T> {
 impl<T: Float> MulAssign for ScalarWrapper<T> {
     fn mul_assign(&mut self, other: ScalarWrapper<T>) {
         *self = Self(self.0 * other.0)
+    }
+}
+
+// R / R
+impl<T: Float> Div for ScalarWrapper<T> {
+    type Output = Self;
+    fn div(self, other: ScalarWrapper<T>) -> Self {
+        Self(self.0 / other.0)
+    }
+}
+
+// R /= R
+impl<T: Float> DivAssign for ScalarWrapper<T> {
+    fn div_assign(&mut self, other: ScalarWrapper<T>) {
+        *self = Self(self.0 / other.0)
     }
 }
 

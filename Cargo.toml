@@ -1,13 +1,13 @@
 [package]
 name = "quaternion-wrapper"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["HamaguRe <hamagure@space-denpa.jp>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/HamaguRe/quaternion-wrapper.git"
 homepage = "https://github.com/HamaguRe/quaternion-wrapper.git"
 documentation = "https://docs.rs/quaternion-wrapper"
-description = "This is a wrapper for the `quaternion-core` crate"
+description = "Provides quaternion operations."
 keywords = ["mathematics", "science"]
 readme = "README.md"
 build = "build.rs"
