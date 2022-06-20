@@ -1,14 +1,15 @@
 [package]
 name = "quaternion-wrapper"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["HamaguRe <hamagure@space-denpa.jp>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/HamaguRe/quaternion-wrapper.git"
 homepage = "https://github.com/HamaguRe/quaternion-wrapper.git"
 documentation = "https://docs.rs/quaternion-wrapper"
-description = "Provides quaternion operations."
-keywords = ["mathematics", "science"]
+description = "Operator overloading allows implementation similar to mathematical expressions."
+keywords = ["math", "quaternion", "vector"]
+categories = ["mathematics", "science", "no-std"]
 readme = "README.md"
 build = "build.rs"
 
@@ -16,15 +17,14 @@ build = "build.rs"
 default = ["std"]
 std = ["quaternion-core/std", "num-traits/std"]
 fma = ["quaternion-core/fma"]
-simd = ["quaternion-core/simd"]
 libm = ["quaternion-core/libm", "num-traits/libm"]
 
 [dependencies.quaternion-core]
-version = "0.1.0"
+version = "0.3.0"
 default-features = false
 
 [dependencies.num-traits]
-version = "0.2"
+version = "0.2.15"
 default-features = false
 
 [build-dependencies]
