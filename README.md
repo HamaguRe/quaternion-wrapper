@@ -1,5 +1,10 @@
 # quaternion-wrapper
 
+[![Latest version](https://img.shields.io/crates/v/quaternion-wrapper?color=orange&style=flat-square)](https://crates.io/crates/quaternion-wrapper)
+[![Documentation](https://img.shields.io/docsrs/quaternion-wrapper/latest?color=brightgreen&style=flat-square&logo=docs.rs)](https://docs.rs/quaternion-wrapper)
+![Minimum rustc](https://img.shields.io/badge/rustc-1.53+-red.svg?style=flat-square&logo=rust)
+![License](https://img.shields.io/crates/l/quaternion-wrapper?color=blue&style=flat-square)
+
 This is a wrapper for the 
 [quaternion-core](https://crates.io/crates/quaternion-core) 
 crate.
@@ -14,7 +19,16 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-quaternion-wrapper = "0.2"
+quaternion-wrapper = "0.3"
+```
+
+For use in a `no_std` environment:
+
+```toml
+[dependencies.quaternion-wrapper]
+version = "0.3"
+default-features = false
+features = ["libm"]
 ```
 
 ## Operator Overloading
@@ -36,36 +50,31 @@ but `f64 * QuaternionWrapper<f64>` cannot.
 
 ## Features
 
-`Cargo.toml`:
-
-```toml
-[dependencies.quaternion-wrapper]
-version = "0.2"
-
-# Uncomment if you wish to use FMA.
-#features = ["fma"]
-
-# Uncomment if you wish to use in "no_std" environment.
-#default-features = false
-#features = ["libm"]
-```
-
 ### fma
 
-This library uses the 
-[mul_add](https://doc.rust-lang.org/std/primitive.f64.html#method.mul_add) 
-method mainly to improve the performance, but by default it is replace with a unfused multiply-add 
-(`s*a + b`) . If you wish to use mul_add method, enable the `fma` feature.
+When this feature is enabled, the 
+[mul_add](https://docs.rs/num-traits/0.2.15/num_traits/float/trait.Float.html#tymethod.mul_add) 
+method will be used internally as much as possible.
+That is, `(s * a) + b` will be expanded as `s.mul_add(a, b)` at compile time.
 
-If your CPU does not support FMA instructions, or if you use `libm` (running in no_std 
-environment), enabling the `fma` feature may cause slowdown of computation speed. Also, 
-due to rounding error, results of `s.mul_add(a, b)` and `s*a + b` will not match perfectly.
+This crate uses the `mul_add` method mainly to improve calculation speed, but if the CPU does 
+not support the `FMA` (Fused Multiply-Add) instruction or if the `libm` feature is 
+enabled, then the calculation is performed by the software implementation.
+In this case, it may be rather slower than if the `fma` feature is not enabled.
 
-### libm & default-features = false
+### libm
 
-These options allow for use in the `no_std` environment. 
-In this case, mathematical functions (e.g. sin, cos, sqrt ...) are provided by 
-[libm](https://crates.io/crates/libm).
+If you set `default-features=false` (do not import `std`), you must enable this feature.
+
+In this case, mathematical functions (e.g. `sin`, `cos`, `sqrt` ...) are provided by 
+[libm](https://crates.io/crates/libm) crate.
+
+### norm-sqrt
+
+By default, the `a.norm()` method is implemented in such a way that overflow and 
+underflow are less likely to occur than with `dot(a, a).sqrt()`. However, if extremely 
+large values are not input and underflow is not that much of a concern, 
+`dot(a, a).sqrt()` is sufficient (and `dot(a, a).sqrt()` is faster than the default implementation in most cases).
 
 ## Example
 

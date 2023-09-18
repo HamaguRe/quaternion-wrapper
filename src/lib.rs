@@ -358,9 +358,14 @@ impl<T: Float + FloatConst> QuaternionWrapper<T> {
         Vector3Wrapper( quat::to_euler_angles(rt, rs, self.0) )
     }
 
-    /// Calculate a Versor to rotate from vector `a` to `b`.
+    /// Calculate the versor to rotate from vector `a` to vector `b` (Without singularity!).
     /// 
-    /// If you enter a zero vector, it returns an identity quaternion.
+    /// This function calculates `q` satisfying `b = q.point_rotation(a)` 
+    /// when `a.norm() = b.norm()`.
+    /// If `a.norm() > 0` and `b.norm() > 0`, then `q` can be calculated with good 
+    /// accuracy no matter what the positional relationship between `a` and `b` is.
+    /// 
+    /// If you enter a zero vector either `a` or `b`, it returns `None`.
     /// 
     /// # Example
     /// 
@@ -369,7 +374,7 @@ impl<T: Float + FloatConst> QuaternionWrapper<T> {
     /// let a = Vector3Wrapper::<f64>::new([1.5, -0.5, 0.2]);
     /// let b = Vector3Wrapper::<f64>::new([0.1, 0.6, 1.0]);
     /// 
-    /// let q = QuaternionWrapper::rotate_a_to_b(a, b);
+    /// let q = QuaternionWrapper::rotate_a_to_b(a, b).unwrap();
     /// let b_check = q.point_rotation(a);
     /// 
     /// let cross = b.cross(b_check).unwrap();
@@ -378,11 +383,36 @@ impl<T: Float + FloatConst> QuaternionWrapper<T> {
     /// assert!( cross[2].abs() < 1e-12 );
     /// ```
     #[inline]
-    pub fn rotate_a_to_b(a: Vector3Wrapper<T>, b: Vector3Wrapper<T>) -> Self {
-        Self( quat::rotate_a_to_b(a.0, b.0) )
+    pub fn rotate_a_to_b(a: Vector3Wrapper<T>, b: Vector3Wrapper<T>) -> Option<Self> {
+        let result = quat::rotate_a_to_b(a.0, b.0);
+        if result.is_some() {
+            Some( Self( result.unwrap() ) )
+        } else {
+            None
+        }
     }
 
-    /// Calculate the sum of each element of Quaternion or Vector3.
+    /// Calculate the versor to rotate from vector `a` to vector `b` by the shortest path.
+    /// 
+    /// The parameter `t` adjusts the amount of movement from `a` to `b`. 
+    /// When `t = 1`, `a` moves completely to position `b`.
+    /// 
+    /// The algorithm used in this function is less accurate when `a` and `b` are parallel. 
+    /// Therefore, it is better to use the `rotate_a_to_b(a, b)` function when `t = 1` and 
+    /// the rotation axis is not important.
+    /// 
+    /// If you enter a zero vector either `a` or `b`, it returns `None`.
+    #[inline]
+    pub fn rotate_a_to_b_shortest(a: Vector3Wrapper<T>, b: Vector3Wrapper<T>, t: T) -> Option<Self> {
+        let result = quat::rotate_a_to_b_shortest(a.0, b.0, t);
+        if result.is_some() {
+            Some( Self( result.unwrap() ) )
+        } else {
+            None
+        }
+    }
+
+    /// Calculate the sum of each element of Quaternion.
     /// 
     /// # Examples
     /// 
@@ -714,6 +744,27 @@ impl<T: Float> Vector3Wrapper<T> {
     #[inline]
     pub fn normalize(self) -> Self {
         Self( quat::normalize(self.0) )
+    }
+
+    /// Calculate the inverse of pure quaternion.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// # use quaternion_wrapper::Vector3Wrapper;
+    /// let v = Vector3Wrapper::<f64>::new( [1.0, 2.0, 3.0] );
+    /// 
+    /// // Identity quaternion
+    /// let id = (v * v.inv()).unwrap();  // = (v.inv() * v).unwrap()
+    /// 
+    /// assert!( (id.0 - 1.0).abs() < 1e-12 );
+    /// assert!( id.1[0].abs() < 1e-12 );
+    /// assert!( id.1[1].abs() < 1e-12 );
+    /// assert!( id.1[2].abs() < 1e-12 );
+    /// ```
+    #[inline]
+    pub fn inv(self) -> Self {
+        Self( quat::inv(self.0) )
     }
 
     /// Exponential function of vector.
