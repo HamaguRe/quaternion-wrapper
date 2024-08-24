@@ -1,6 +1,6 @@
 [package]
 name = "quaternion-wrapper"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["HamaguRe <hamagure@space-denpa.jp>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
@@ -20,7 +20,7 @@ libm = ["quaternion-core/libm", "num-traits/libm"]
 norm-sqrt = ["quaternion-core/norm-sqrt"]
 
 [dependencies.quaternion-core]
-version = "0.4.2"
+version = "0.5.2"
 default-features = false
 
 [dependencies.num-traits]

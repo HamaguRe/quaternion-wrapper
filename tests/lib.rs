@@ -1,4 +1,3 @@
-
 use quaternion_core as quat;
 use quaternion_wrapper::*;
 
