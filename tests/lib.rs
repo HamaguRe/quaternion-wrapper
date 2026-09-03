@@ -18,3 +18,12 @@ fn test_ops() {
     assert!( (q_check.1[2] - q_result.1[2]).abs() < EPSILON );
 }
 
+#[test]
+fn wrappers_do_not_require_float_to_wrap_values() {
+    let q = QuaternionWrapper::new((1_i32, [2, 3, 4]));
+    assert_eq!(q.get_scalar_part().unwrap(), 1);
+    assert_eq!(q.get_vector_part().unwrap(), [2, 3, 4]);
+
+    assert_eq!(Vector3Wrapper::new([1_i32, 2, 3]).unwrap(), [1, 2, 3]);
+    assert_eq!(ScalarWrapper::new(1_i32).unwrap(), 1);
+}

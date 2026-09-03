@@ -2,7 +2,7 @@
 
 [![Latest version](https://img.shields.io/crates/v/quaternion-wrapper?color=orange&style=flat-square)](https://crates.io/crates/quaternion-wrapper)
 [![Documentation](https://img.shields.io/docsrs/quaternion-wrapper/latest?color=brightgreen&style=flat-square&logo=docs.rs)](https://docs.rs/quaternion-wrapper)
-![Minimum rustc](https://img.shields.io/badge/rustc-1.53+-red.svg?style=flat-square&logo=rust)
+![Minimum rustc](https://img.shields.io/badge/rustc-1.60+-red.svg?style=flat-square&logo=rust)
 ![License](https://img.shields.io/crates/l/quaternion-wrapper?color=blue&style=flat-square)
 
 This is a wrapper for the 
@@ -19,14 +19,14 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-quaternion-wrapper = "0.3"
+quaternion-wrapper = "0.4"
 ```
 
 For use in a `no_std` environment:
 
 ```toml
 [dependencies.quaternion-wrapper]
-version = "0.3"
+version = "0.4"
 default-features = false
 features = ["libm"]
 ```
@@ -53,7 +53,7 @@ but `f64 * QuaternionWrapper<f64>` cannot.
 ### fma
 
 When this feature is enabled, the 
-[mul_add](https://docs.rs/num-traits/0.2.15/num_traits/float/trait.Float.html#tymethod.mul_add) 
+[mul_add](https://docs.rs/num-traits/0.2.19/num_traits/float/trait.Float.html#tymethod.mul_add)
 method will be used internally as much as possible.
 That is, `(s * a) + b` will be expanded as `s.mul_add(a, b)` at compile time.
 
@@ -72,9 +72,9 @@ In this case, mathematical functions (e.g. `sin`, `cos`, `sqrt` ...) are provide
 ### norm-sqrt
 
 By default, the `a.norm()` method is implemented in such a way that overflow and 
-underflow are less likely to occur than with `dot(a, a).sqrt()`. However, if extremely 
+underflow are less likely to occur than with `a.dot(a).unwrap().sqrt()`. However, if extremely
 large values are not input and underflow is not that much of a concern, 
-`dot(a, a).sqrt()` is sufficient (and `dot(a, a).sqrt()` is faster than the default implementation in most cases).
+`a.dot(a).unwrap().sqrt()` is sufficient (and usually faster than the default implementation).
 
 ## Example
 
@@ -89,7 +89,7 @@ const EPSILON: f64 = 1e-12;
 fn main() {
     // Generates a quaternion representing the
     // rotation of π/2[rad] around the y-axis.
-    let q = QuaternionWrapper::from_axis_angle([0.0, 1.0, 0.0], PI/2.0);
+    let q = QuaternionWrapper::from_axis_angle(Vector3Wrapper([0.0, 1.0, 0.0]), PI/2.0);
 
     // Point
     let v = Vector3Wrapper([2.0, 2.0, 0.0]);

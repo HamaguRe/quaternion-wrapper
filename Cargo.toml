@@ -1,15 +1,16 @@
 [package]
 name = "quaternion-wrapper"
-version = "0.3.1"
+version = "0.4.0"
 authors = ["HamaguRe <hamagure@space-denpa.jp>"]
 edition = "2018"
+rust-version = "1.60"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/HamaguRe/quaternion-wrapper.git"
 homepage = "https://github.com/HamaguRe/quaternion-wrapper.git"
 documentation = "https://docs.rs/quaternion-wrapper"
 description = "Operator overloading allows implementation similar to mathematical expressions."
-keywords = ["math", "quaternion", "vector"]
-categories = ["mathematics", "science", "no-std"]
+keywords = ["quaternion", "rotation", "attitude", "euler-angles", "operator-overloading"]
+categories = ["mathematics", "science::robotics", "no-std::no-alloc", "embedded", "aerospace"]
 readme = "README.md"
 
 [features]
@@ -20,9 +21,9 @@ libm = ["quaternion-core/libm", "num-traits/libm"]
 norm-sqrt = ["quaternion-core/norm-sqrt"]
 
 [dependencies.quaternion-core]
-version = "0.5.2"
+version = "0.6.2"
 default-features = false
 
 [dependencies.num-traits]
-version = "0.2.15"
+version = "0.2.19"
 default-features = false
